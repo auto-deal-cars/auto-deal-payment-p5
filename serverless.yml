@@ -1,0 +1,110 @@
+service: auto-deal-payment
+frameworkVersion: '3'
+params:
+  default:
+    audienceIssuerUrl: ${env.AUDIENCE_ISSUER_URL}
+    audienceClientId: ${env.AUDIENCE_CLIENT_ID}
+
+custom:
+  tableName: 'auto-deal-payment-${sls:stage}'
+
+provider:
+  name: aws
+  ecr:
+    images:
+      auto-deal-payment:
+        path: ./
+        platform: linux/arm64
+  stage: dev
+  region: us-east-1
+  runtime: python3.10
+  timeout: 30
+  deploymentMethod: direct
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ AutoDealPaymentTable, Arn ]
+  environment:
+    ENV_ACCESS_TOKEN: ${env.ENV_ACCESS_TOKEN}
+    ZIP_CODE: ${env.ZIP_CODE}
+    STREET_NAME: ${env.STREET_NAME}
+    STREET_NUMBER: ${env.STREET_NUMBER}
+    NEIGHBORHOOD: ${env.NEIGHBORHOOD}
+    CITY: ${env.CITY}
+    FEDERAL_UNIT: ${env.FEDERAL_UNIT}
+    DEFAULT_EMAIL: ${env.DEFAULT_EMAIL}
+
+  httpApi:
+    cors: true
+    authorizers:
+      autoDealAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: ${param:audienceIssuerUrl}
+        audience:
+          - ${param:audienceClientId}
+  architecture: arm64
+functions:
+  pay:
+    image:
+      name: auto-deal-payment
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [ InitializePaymentQueue, Arn ]
+          batchSize: 10
+  get-payment:
+    image:
+      name: auto-deal-payment
+      command: ["payment.adapters.controllers.get_payment_controller.get_payment"]
+    events:
+      - httpApi:
+          path: /payment
+          method: get
+          authorizer:
+            name: autoDealAuthorizer
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-openapi-documenter
+
+resources:
+  Resources:
+    AutoDealPaymentTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: idempotency_key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: idempotency_key
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.tableName}
+    InitializePaymentQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: initialize-payment-queue
+        VisibilityTimeout: 30
+        MessageRetentionPeriod: 300
+    SuccessPaymentQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: success-payment-queue
+        VisibilityTimeout: 30
+        MessageRetentionPeriod: 300
+    FailedPaymentQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: failed-payment-queue
+        VisibilityTimeout: 30
+        MessageRetentionPeriod: 300
