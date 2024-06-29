@@ -3,8 +3,10 @@ Get payment from Mercado Pago
 """
 import os
 import json
-import boto3
 import mercadopago
+
+from payment.adapters.repositories.dynamo_db_payment_repository import DynamoDBPaymentRepository
+from payment.application.services.payment_service import PaymentService
 
 sdk = mercadopago.SDK(os.environ.get("ENV_ACCESS_TOKEN"))
 
@@ -14,26 +16,13 @@ def get_payment(event, context):
     """
     body = json.loads(event["body"])
     idempotency_key = body["idempotency_key"]
-    client = boto3.client("dynamodb")
 
-    response = client.get_item(
-        TableName=f"{os.environ.get('TABLE_NAME')}-dev",
-        Key={
-            "idempotency_key": {"S": idempotency_key}
-        }
-    )
+    payment_repository = DynamoDBPaymentRepository()
+    payment_service = PaymentService(payment_repository)
+
+    response = payment_repository.get_payment_by_idempotency_key(idempotency_key)
     item = response["Item"]
-
-    prettified_response = {
-        "idempotency_key": item["idempotency_key"]["S"],
-        "payment_id": item["payment_id"]["N"],
-        "status": item["status"]["S"],
-        "order_id": item["order_id"]["N"],
-        "external_id": item["external_id"]["N"],
-        "vehicle_id": item["vehicle_id"]["N"],
-        "created_at": item["created_at"]["S"],
-        "updated_at": item["updated_at"]["S"],
-    }
+    prettified_response = payment_service.pretty_print_payment(item)
 
     return {
         "statusCode": 200,

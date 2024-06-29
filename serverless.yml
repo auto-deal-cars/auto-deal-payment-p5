@@ -62,6 +62,14 @@ functions:
           arn:
             Fn::GetAtt: [ InitializePaymentQueue, Arn ]
           batchSize: 10
+  webhook-notify:
+    image:
+      name: auto-deal-payment
+      command: ["payment.adapters.controllers.webhook_controller.webhook_notify"]
+    events:
+      - httpApi:
+          path: /webhook
+          method: post
   get-payment:
     image:
       name: auto-deal-payment
@@ -85,26 +93,18 @@ resources:
         AttributeDefinitions:
           - AttributeName: idempotency_key
             AttributeType: S
+          - AttributeName: payment_id
+            AttributeType: N
         KeySchema:
           - AttributeName: idempotency_key
             KeyType: HASH
+          - AttributeName: payment_id
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.tableName}
     InitializePaymentQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: initialize-payment-queue
-        VisibilityTimeout: 30
-        MessageRetentionPeriod: 300
-    SuccessPaymentQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: success-payment-queue
-        VisibilityTimeout: 30
-        MessageRetentionPeriod: 300
-    FailedPaymentQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: failed-payment-queue
         VisibilityTimeout: 30
         MessageRetentionPeriod: 300
