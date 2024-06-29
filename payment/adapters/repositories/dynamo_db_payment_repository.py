@@ -5,7 +5,9 @@ import os
 from datetime import datetime
 import boto3
 
-class DynamoDBPaymentRepository:
+from payment.application.ports.payment_repository import PaymentRepository
+
+class DynamoDBPaymentRepository(PaymentRepository):
     """
     This class implements the DynamoDB payment repository.
     """
@@ -20,7 +22,19 @@ class DynamoDBPaymentRepository:
         """
         This method creates a new payment.
         """
-        pass
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={
+                "idempotency_key": {"S": str(payment["idempotency_key"])},
+                "status": {"S": payment["status"]},
+                "order_id": {"N": str(payment["order_id"])},
+                "payment_id": {"N": str(payment["payment_id"])},
+                "external_id": {"N": str(payment["external_id"])},
+                "vehicle_id": {"N": str(payment["vehicle_id"])},
+                "created_at": {"S": datetime.now().isoformat()},
+                "updated_at": {"S": datetime.now().isoformat()}
+            }
+        )
 
     def get_payment_by_idempotency_key(self, idempotency_key: str) -> dict:
         """
@@ -54,20 +68,18 @@ class DynamoDBPaymentRepository:
 
         return prettified_response
 
-    def store_payment(self, payment: dict):
+    def update_payment(self, idempotency_key: str, status: str):
         """
-        This method stores a payment.
+        This method updates a payment.
         """
-        self.client.put_item(
+        self.client.update_item(
             TableName=self.table_name,
-            Item={
-                "idempotency_key": {"S": str(payment["idempotency_key"])},
-                "status": {"S": payment["status"]},
-                "order_id": {"N": str(payment["order_id"])},
-                "payment_id": {"N": str(payment["payment_id"])},
-                "external_id": {"N": str(payment["external_id"])},
-                "vehicle_id": {"N": str(payment["vehicle_id"])},
-                "created_at": {"S": datetime.now().isoformat()},
-                "updated_at": {"S": datetime.now().isoformat()}
+            Key={
+                "idempotency_key": {"S": idempotency_key}
+            },
+            UpdateExpression="set #status = :status, updated_at = :updated_at",
+            ExpressionAttributeValues={
+                ":status": status,
+                ":updated_at": datetime.now().isoformat()
             }
         )

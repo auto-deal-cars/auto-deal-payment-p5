@@ -1,8 +1,8 @@
 """Payment controller"""
 import json
 
-from payment.application.services.mercadopago_service import MercadopagoService
 from payment.adapters.repositories.dynamo_db_payment_repository import DynamoDBPaymentRepository
+from payment.application.services.payment_service import PaymentService
 
 def create_payment(event, context):
     """Payment controller"""
@@ -11,18 +11,18 @@ def create_payment(event, context):
     order_id = body["order_id"]
     idempotency_key = body["idempotency_key"]
 
-    mercadopago_service = MercadopagoService()
     payment_repository = DynamoDBPaymentRepository()
-    payment = mercadopago_service.pay(vehicle_id, idempotency_key)
+    payment_service = PaymentService(payment_repository)
+    payment = payment_service.start_payment(idempotency_key, vehicle_id)
 
-    try:
-        payment_repository.store_payment({
-            "idempotency_key": idempotency_key,
-            "status": payment["status"],
-            "order_id": order_id,
-            "payment_id": payment["id"],
-            "external_id": payment["id"],
-            "vehicle_id": vehicle_id
-        })
-    except Exception as error:
-        print("Error saving payment to dynamodb", error)
+    payment_service.create_payment({
+        **payment,
+        "idempotency_key": idempotency_key,
+        "order_id": order_id,
+        "vehicle_id": vehicle_id
+    })
+
+    return {
+        "statusCode": 201,
+        "body": json.dumps(payment)
+    }
