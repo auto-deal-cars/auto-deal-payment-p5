@@ -1,8 +1,8 @@
 """
-Get payment from Mercado Pago
+Get payment from DynamoDB
 """
-import os
 import json
+import os
 import mercadopago
 
 from payment.adapters.repositories.dynamo_db_payment_repository import DynamoDBPaymentRepository
@@ -12,7 +12,7 @@ sdk = mercadopago.SDK(os.environ.get("ENV_ACCESS_TOKEN"))
 
 def get_payment(event, context):
     """
-    Get payment from Mercado Pago
+    Get payment from DynamoDB
     """
     body = json.loads(event["body"])
     idempotency_key = body["idempotency_key"]

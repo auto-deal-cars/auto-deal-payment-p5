@@ -57,6 +57,7 @@ functions:
   pay:
     image:
       name: auto-deal-payment
+      command: ["payment.adapters.controllers.pay_controller.create_payment"]
     events:
       - sqs:
           arn:

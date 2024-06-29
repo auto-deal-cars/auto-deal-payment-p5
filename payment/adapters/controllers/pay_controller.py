@@ -6,7 +6,6 @@ from payment.application.services.payment_service import PaymentService
 
 def create_payment(event, context):
     """Payment controller"""
-
     body = json.loads(event["Records"][0]["body"])
     vehicle_id = body["vehicle_id"]
     order_id = body["order_id"]
