@@ -34,7 +34,11 @@ provider:
           Resource:
             - Fn::GetAtt: [ AutoDealPaymentTable, Arn ]
   environment:
+    TABLE_NAME: ${env.TABLE_NAME}
     ENV_ACCESS_TOKEN: ${env.ENV_ACCESS_TOKEN}
+    MERCADO_PAGO_API_URL: ${env.MERCADO_PAGO_API_URL}
+    SUCCESS_PAYMENT_QUEUE_URL: ${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}
+    FAILED_PAYMENT_QUEUE_URL: ${{ secrets.FAILED_PAYMENT_QUEUE_URL }}
     ZIP_CODE: ${env.ZIP_CODE}
     STREET_NAME: ${env.STREET_NAME}
     STREET_NUMBER: ${env.STREET_NUMBER}

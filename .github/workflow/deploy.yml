@@ -1,0 +1,93 @@
+name: Deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
+        pip install pytest
+
+    - name: Run tests
+      run: |
+        pytest
+
+    - name: Create envfile
+      uses: SpicyPizza/create-envfile@v2.0
+      with:
+        envkey_TABLE_NAME: ${{ secrets.TABLE_NAME }}
+        envkey_ENV_ACCESS_TOKEN: ${{ secrets.ENV_ACCESS_TOKEN }}
+        envkey_MERCADO_PAGO_API_URL: ${{ secrets.MERCADO_PAGO_API_URL }}
+        envkey_SUCCESS_PAYMENT_QUEUE_URL: ${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}
+        envkey_FAILED_PAYMENT_QUEUE_URL: ${{ secrets.FAILED_PAYMENT_QUEUE_URL }}
+        envkey_ZIP_CODE: ${{ secrets.ZIP_CODE }}
+        envkey_STREET_NAME: ${{ secrets.STREET_NAME }}
+        envkey_STREET_NUMBER: ${{ secrets.STREET_NUMBER }}
+        envkey_NEIGHBORHOOD: ${{ secrets.NEIGHBORHOOD }}
+        envkey_CITY: ${{ secrets.CITY }}
+        envkey_FEDERAL_UNIT: ${{ secrets.FEDERAL_UNIT }}
+        envkey_DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        file_name: .env
+      env:
+        TABLE_NAME: ${{ secrets.TABLE_NAME }}
+        ENV_ACCESS_TOKEN: ${{ secrets.ENV_ACCESS_TOKEN }}
+        MERCADO_PAGO_API_URL: ${{ secrets.MERCADO_PAGO_API_URL }}
+        SUCCESS_PAYMENT_QUEUE_URL: ${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}
+        FAILED_PAYMENT_QUEUE_URL: ${{ secrets.FAILED_PAYMENT_QUEUE_URL }}
+        ZIP_CODE: ${{ secrets.ZIP_CODE }}
+        STREET_NAME: ${{ secrets.STREET_NAME }}
+        STREET_NUMBER: ${{ secrets.STREET_NUMBER }}
+        NEIGHBORHOOD: ${{ secrets.NEIGHBORHOOD }}
+        CITY: ${{ secrets.CITY }}
+        FEDERAL_UNIT: ${{ secrets.FEDERAL_UNIT }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+
+    - name: Run Alembic migrations
+      run: |
+        alembic upgrade head
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: remove previous deployment
+      if: success()
+      run: |
+        sls remove --verbose
+
+    - name: Deploy if tests pass
+      if: success()
+      run: |
+        npm install -g serverless@3.38.0
+        npm install -g serverless-dotenv-plugin
+        npm install dotenv
+        sls deploy --verbose \
+        --param="audienceIssuerUrl=${{ secrets.AUDIENCE_ISSUER_URL }}" \
+        --param="audienceClientId=${{ secrets.AUDIENCE_CLIENT_ID }}" \
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1
+        AUDIENCE_ISSUER_URL: ${{ secrets.AUDIENCE_ISSUER_URL }}
+        AUDIENCE_CLIENT_ID: ${{ secrets.AUDIENCE_CLIENT_ID }}
+
+    - name: Clean up .env file
+      if: success()
+      run: rm .env
