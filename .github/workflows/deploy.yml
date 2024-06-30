@@ -72,6 +72,7 @@ jobs:
 
     - name: remove previous deployment
       if: success()
+      continue-on-error: true
       run: |
         sls remove --verbose
       env:
