@@ -31,13 +31,11 @@ def get_payment(event, context):
         payment_repository = DynamoDBPaymentRepository()
         payment_service = PaymentService(payment_repository)
 
-        response = payment_repository.get_payment_by_idempotency_key(idempotency_key)
-        item = response["Item"]
-        prettified_response = payment_service.pretty_print_payment(item)
+        response = payment_service.get_payment_by_idempotency_key(idempotency_key)
 
         return {
             "statusCode": 200,
-                "body": json.dumps(prettified_response)
+                "body": json.dumps(response)
             }
     except Exception as e:
         logger.error(f"Error: {e}")

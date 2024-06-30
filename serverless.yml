@@ -33,6 +33,12 @@ provider:
             - dynamodb:DeleteItem
           Resource:
             - Fn::GetAtt: [ AutoDealPaymentTable, Arn ]
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+          Resource:
+            - ${param:failedPaymentQueueUrl}
+            - ${param:successPaymentQueueUrl}
   environment:
     TABLE_NAME: ${env.TABLE_NAME}
     ENV_ACCESS_TOKEN: ${env.ENV_ACCESS_TOKEN}
@@ -96,15 +102,11 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: idempotency_key
-            AttributeType: S
           - AttributeName: payment_id
             AttributeType: N
         KeySchema:
-          - AttributeName: idempotency_key
-            KeyType: HASH
           - AttributeName: payment_id
-            KeyType: RANGE
+            KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.tableName}
     InitializePaymentQueue:
