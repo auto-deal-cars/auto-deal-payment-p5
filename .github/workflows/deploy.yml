@@ -84,16 +84,16 @@ jobs:
         sls deploy --verbose \
           --param="audienceIssuerUrl=${{ secrets.AUDIENCE_ISSUER_URL }}" \
           --param="audienceClientId=${{ secrets.AUDIENCE_CLIENT_ID }}" \
-          --param="failedPaymentQueueUrl=${{ secrets.FAILED_PAYMENT_QUEUE_URL }}" \
-          --param="successPaymentQueueUrl=${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}" \
+          --param="failedPaymentQueueArn=${{ secrets.FAILED_PAYMENT_QUEUE_ARN }}" \
+          --param="successPaymentQueueArn=${{ secrets.SUCCESS_PAYMENT_QUEUE_ARN }}" \
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: us-east-1
         AUDIENCE_ISSUER_URL: ${{ secrets.AUDIENCE_ISSUER_URL }}
         AUDIENCE_CLIENT_ID: ${{ secrets.AUDIENCE_CLIENT_ID }}
-        FAILED_PAYMENT_QUEUE_URL: ${{ secrets.FAILED_PAYMENT_QUEUE_URL }}
-        SUCCESS_PAYMENT_QUEUE_URL: ${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}
+        FAILED_PAYMENT_QUEUE_ARN: ${{ secrets.FAILED_PAYMENT_QUEUE_ARN }}
+        SUCCESS_PAYMENT_QUEUE_ARN: ${{ secrets.SUCCESS_PAYMENT_QUEUE_ARN }}
 
     - name: Clean up .env file
       if: success()

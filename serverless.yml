@@ -4,7 +4,8 @@ params:
   default:
     audienceIssuerUrl: ${env.AUDIENCE_ISSUER_URL}
     audienceClientId: ${env.AUDIENCE_CLIENT_ID}
-
+    failedPaymentQueueArn: ${env.FAILED_PAYMENT_QUEUE_ARN}
+    successPaymentQueueArn: ${env.SUCCESS_PAYMENT_QUEUE_ARN}
 custom:
   tableName: 'auto-deal-payment-${sls:stage}'
 
@@ -37,8 +38,8 @@ provider:
           Action:
             - sqs:SendMessage
           Resource:
-            - ${param:failedPaymentQueueUrl}
-            - ${param:successPaymentQueueUrl}
+            - ${param:failedPaymentQueueArn}
+            - ${param:successPaymentQueueArn}
   environment:
     TABLE_NAME: ${env.TABLE_NAME}
     ENV_ACCESS_TOKEN: ${env.ENV_ACCESS_TOKEN}
