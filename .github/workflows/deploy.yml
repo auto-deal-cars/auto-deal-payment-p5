@@ -60,10 +60,6 @@ jobs:
         FEDERAL_UNIT: ${{ secrets.FEDERAL_UNIT }}
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
 
-    - name: Run Alembic migrations
-      run: |
-        alembic upgrade head
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
