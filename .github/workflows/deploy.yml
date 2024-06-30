@@ -62,19 +62,23 @@ jobs:
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
+    
+    - name: Install serverless dependencies
+      id: install-serverless
+      run: |
+        npm install -g serverless@3.38.0
+        npm install -g serverless-dotenv-plugin
+        npm install dotenv
 
     - name: remove previous deployment
-      if: success()
+      if: steps.install-serverless.outputs.outcome == 'success'
       run: |
         npm install -g serverless@3.38.0
         sls remove --verbose
 
     - name: Deploy if tests pass
-      if: success()
+      if: steps.install-serverless.outputs.outcome == 'success'
       run: |
-        npm install -g serverless@3.38.0
-        npm install -g serverless-dotenv-plugin
-        npm install dotenv
         sls deploy --verbose \
         --param="audienceIssuerUrl=${{ secrets.AUDIENCE_ISSUER_URL }}" \
         --param="audienceClientId=${{ secrets.AUDIENCE_CLIENT_ID }}" \
