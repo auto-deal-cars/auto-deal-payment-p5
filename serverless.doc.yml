@@ -1,0 +1,92 @@
+documentation:
+  version: '1'
+  title: 'Auto Deal Payment'
+  description: 'API documentation for the Auto Deal Payment service'
+  securitySchemes:
+    my_authentication:
+      type: http
+      scheme: bearer
+      bearerFormat: http
+  security:
+    - my_authentication: []
+  models:
+  - name: "ErrorResponse"
+    description: "This is an error"
+    contentType: "application/json"
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+  - name: "WebhookResponse"
+    description: "Webhook success response"
+    contentType: "application/json"
+    schema:
+      type: object
+      properties:
+        action:
+          type: string
+        data:
+          type: object
+          properties:
+            payment_id:
+              type: string
+  - name: "PaymentDetailsRequest"
+    description: "Payment details request"
+    contentType: "application/json"
+    schema:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+
+endpoints:
+  get-payment:
+    summary: "Get Payment details"
+    description: "Endpoint retrieving payment information from DynamoDB"
+    tags:
+      - name: "Payment"
+    requestBody:
+      description: "Payment details request"
+    requestModels:
+      application/json: "PaymentDetailsRequest"
+    methodResponses:
+      - statusCode: 200
+        responseBody:
+          description: "Payment response retrieved"
+      - statusCode: 404
+        responseBody:
+          description: "idempotency_key not found"
+        responseModels:
+          application/json: "ErrorResponse"
+      - statusCode: 500
+        responseBody:
+          description: "Database errors"
+        responseModels:
+          application/json: "ErrorResponse"
+
+  webhook-notify:
+    summary: "Webhook notification receiver"
+    description: "Endpoint responsible for receiving webhook response from Mercado Pago"
+    tags:
+      - name: "Payment"
+    requestBody:
+      description: "Webhook notification payload"
+    requestModels:
+      application/json: "WebhookResponse"
+    methodResponses:
+      - statusCode: 200
+        responseBody:
+          description: "Notification received"
+      - statusCode: 400
+        responseBody:
+          description: "Validation errors"
+        responseModels:
+          application/json: "ErrorResponse"
+      - statusCode: 500
+        responseBody:
+          description: "Database errors"
+        responseModels:
+          application/json: "ErrorResponse"
