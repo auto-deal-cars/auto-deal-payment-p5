@@ -1,6 +1,12 @@
 # Serverless directories
-.serverless
 env
-package-lock.json
+.serverless
 .env
+.idea
+.DS_Store
+.venv
 node_modules
+package-lock.json
+.coverage
+
+__pycache__

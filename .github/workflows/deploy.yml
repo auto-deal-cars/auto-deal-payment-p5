@@ -1,8 +1,6 @@
 name: Deploy
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
@@ -60,27 +58,30 @@ jobs:
         FEDERAL_UNIT: ${{ secrets.FEDERAL_UNIT }}
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
 
-    - name: Run Alembic migrations
-      run: |
-        alembic upgrade head
-
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
-
-    - name: remove previous deployment
-      if: success()
-      run: |
-        sls remove --verbose
-
-    - name: Deploy if tests pass
-      if: success()
+    
+    - name: Install serverless dependencies
+      id: install-serverless
       run: |
         npm install -g serverless@3.38.0
         npm install -g serverless-dotenv-plugin
         npm install dotenv
-        sls deploy --verbose \
-        --param="audienceIssuerUrl=${{ secrets.AUDIENCE_ISSUER_URL }}" \
-        --param="audienceClientId=${{ secrets.AUDIENCE_CLIENT_ID }}" \
+
+    - name: remove previous deployment
+      if: success()
+      continue-on-error: true
+      run: |
+        sls remove --verbose
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1
+
+    - name: Deploy if tests pass
+      if: success()
+      run: |
+        sls deploy --verbose --param="audienceIssuerUrl=${{ secrets.AUDIENCE_ISSUER_URL }}" --param="audienceClientId=${{ secrets.AUDIENCE_CLIENT_ID }}" \
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

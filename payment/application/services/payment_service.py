@@ -7,6 +7,7 @@ import boto3
 import mercadopago
 import requests
 from payment.application.ports.payment_repository import PaymentRepository
+from payment.domain.payment import Payment
 
 sqs = boto3.client("sqs")
 class PaymentService:
@@ -17,7 +18,7 @@ class PaymentService:
         self.payment_repository = payment_repository
         self.sdk = mercadopago.SDK(os.environ.get("ENV_ACCESS_TOKEN"))
 
-    def create_payment(self, payment: dict):
+    def create_payment(self, payment: Payment):
         """
         This method creates a new payment.
         """

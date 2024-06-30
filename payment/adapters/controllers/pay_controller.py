@@ -21,8 +21,3 @@ def create_payment(event, context):
         "order_id": order_id,
         "vehicle_id": vehicle_id
     })
-
-    return {
-        "statusCode": 201,
-        "body": json.dumps(payment)
-    }
