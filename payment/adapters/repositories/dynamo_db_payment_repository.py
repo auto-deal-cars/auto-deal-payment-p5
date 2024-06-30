@@ -6,6 +6,7 @@ from datetime import datetime
 import boto3
 
 from payment.application.ports.payment_repository import PaymentRepository
+from payment.domain.payment import Payment
 
 class DynamoDBPaymentRepository(PaymentRepository):
     """
@@ -18,19 +19,19 @@ class DynamoDBPaymentRepository(PaymentRepository):
         self.client = boto3.client("dynamodb")
         self.table_name = f"{os.environ.get('TABLE_NAME')}-dev"
 
-    def create(self, payment: dict):
+    def create(self, payment: Payment):
         """
         This method creates a new payment.
         """
         self.client.put_item(
             TableName=self.table_name,
             Item={
-                "idempotency_key": {"S": str(payment["idempotency_key"])},
-                "status": {"S": payment["status"]},
-                "order_id": {"N": str(payment["order_id"])},
-                "payment_id": {"N": str(payment["payment_id"])},
-                "external_id": {"N": str(payment["external_id"])},
-                "vehicle_id": {"N": str(payment["vehicle_id"])},
+                "idempotency_key": {"S": payment.idempotency_key},
+                "status": {"S": payment.status},
+                "order_id": {"N": str(payment.order_id)},
+                "payment_id": {"N": str(payment.payment_id)},
+                "external_id": {"N": str(payment.external_id)},
+                "vehicle_id": {"N": str(payment.vehicle_id)},
                 "created_at": {"S": datetime.now().isoformat()},
                 "updated_at": {"S": datetime.now().isoformat()}
             }
