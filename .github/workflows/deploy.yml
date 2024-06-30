@@ -66,6 +66,7 @@ jobs:
     - name: remove previous deployment
       if: success()
       run: |
+        npm install -g serverless@3.38.0
         sls remove --verbose
 
     - name: Deploy if tests pass
