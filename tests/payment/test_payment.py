@@ -8,10 +8,10 @@ def payment() -> Payment:
     return Payment(
         idempotency_key="123",
         status="pending",
-        order_id="123",
-        payment_id="123",
-        external_id="123",
-        vehicle_id="123",
+        order_id=123,
+        payment_id=123,
+        external_id=123,
+        vehicle_id=123,
         created_at="2021-01-01",
         updated_at="2021-01-01",
     )
@@ -20,10 +20,10 @@ def test_payment_model(payment: Payment):
     """Test payment model"""
     assert payment.idempotency_key == "123"
     assert payment.status == "pending"
-    assert payment.order_id == "123"
-    assert payment.payment_id == "123"
-    assert payment.external_id == "123"
-    assert payment.vehicle_id == "123"
+    assert payment.order_id == 123
+    assert payment.payment_id == 123
+    assert payment.external_id == 123
+    assert payment.vehicle_id == 123
     assert payment.created_at == "2021-01-01"
     assert payment.updated_at == "2021-01-01"
 

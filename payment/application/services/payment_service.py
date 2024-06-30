@@ -37,7 +37,7 @@ class PaymentService:
         url = f"{os.environ['MERCADO_PAGO_API_URL']}{payment_id}"
         response = requests.get(
             url,
-            headers={"Authorization": f"Bearer {os.environ['MERCADO_PAGO_ACCESS_TOKEN']}"},
+            headers={"Authorization": f"Bearer {os.environ['ENV_ACCESS_TOKEN']}"},
             timeout=15
         )
 
@@ -47,9 +47,13 @@ class PaymentService:
         """
         This method handles a successful payment.
         """
+        payment = self.payment_repository.get_payment_by_payment_id(payment_id)
         sqs.send_message(
             QueueUrl=os.environ['SUCCESS_PAYMENT_QUEUE_URL'],
-            MessageBody=json.dumps(payment_id)
+            MessageBody=json.dumps({
+                "payment_id": payment["payment_id"],
+                "vehicle_id": payment["vehicle_id"],
+            })
         )
 
         self.payment_repository.update_payment(
@@ -61,32 +65,19 @@ class PaymentService:
         """
         This method handles a failed payment.
         """
+        payment = self.payment_repository.get_payment_by_payment_id(payment_id)
         sqs.send_message(
             QueueUrl=os.environ['FAILED_PAYMENT_QUEUE_URL'],
-            MessageBody=json.dumps(payment_id)
+            MessageBody=json.dumps({
+                "payment_id": payment["payment_id"],
+                "vehicle_id": payment["vehicle_id"],
+            })
         )
 
         self.payment_repository.update_payment(
             payment_id=payment_id,
             status='failed'
         )
-
-    def pretty_print_payment(self, payment: dict):
-        """
-        This method pretty prints a payment.
-        """
-        prettified_response = {
-            "idempotency_key": payment["idempotency_key"]["S"],
-            "payment_id": payment["payment_id"]["N"],
-            "status": payment["status"]["S"],
-            "order_id": payment["order_id"]["N"],
-            "external_id": payment["external_id"]["N"],
-            "vehicle_id": payment["vehicle_id"]["N"],
-            "created_at": payment["created_at"]["S"],
-            "updated_at": payment["updated_at"]["S"],
-        }
-
-        return prettified_response
 
     def start_payment(self, idempotency_key: str, vehicle_id: int):
         """

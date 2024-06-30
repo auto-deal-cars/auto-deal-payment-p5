@@ -10,3 +10,4 @@ package-lock.json
 .coverage
 
 __pycache__
+/__pycache__/__init__.cpython-310.pyc

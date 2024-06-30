@@ -22,6 +22,13 @@ class PaymentRepository(ABC):
         pass
 
     @abstractmethod
+    def get_payment_by_payment_id(self, payment_id: int) -> dict:
+        """
+        Get a payment from the repository by payment id.
+        """
+        pass
+
+    @abstractmethod
     def transform_payment_to_prettified_response(self, payment: dict) -> dict:
         """
         Transform a payment to a prettified response.
@@ -30,7 +37,7 @@ class PaymentRepository(ABC):
 
 
     @abstractmethod
-    def update_payment(self, idempotency_key: str, status: str) -> None:
+    def update_payment(self, payment_id: str, status: str) -> None:
         """
         Update a payment in the repository.
         """
