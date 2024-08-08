@@ -9,45 +9,36 @@ documentation:
       bearerFormat: http
   security:
     - my_authentication: []
+  servers:
+    - url: https://auto-deal-payment.com/
+      description: Server for production
+    - url: http://localhost/
+      description: Server for local development
+  tags:
+    - name: "Payment"
+      description: "Payment endpoints"
   models:
   - name: "ErrorResponse"
     description: "This is an error"
     contentType: "application/json"
-    schema:
-      type: object
-      properties:
-        message:
-          type: string
-        statusCode:
-          type: integer
-  - name: "WebhookResponse"
-    description: "Webhook success response"
+    schema: ${file('documentation/opeanapi/schemas/error-response.yml')}
+
+  - name: "WebhookRequest"
+    description: "Webhook request body"
     contentType: "application/json"
-    schema:
-      type: object
-      properties:
-        action:
-          type: string
-        data:
-          type: object
-          properties:
-            payment_id:
-              type: string
+    schema: ${file('documentation/opeanapi/schemas/webhook-request.yml')}
+
   - name: "PaymentDetailsRequest"
     description: "Payment details request"
     contentType: "application/json"
-    schema:
-      type: object
-      properties:
-        idempotency_key:
-          type: string
+    schema: ${file('documentation/opeanapi/schemas/payment-details-request.json')}
 
 endpoints:
   get-payment:
     summary: "Get Payment details"
     description: "Endpoint retrieving payment information from DynamoDB"
     tags:
-      - name: "Payment"
+      - "Payment"
     requestBody:
       description: "Payment details request"
     requestModels:
@@ -71,11 +62,11 @@ endpoints:
     summary: "Webhook notification receiver"
     description: "Endpoint responsible for receiving webhook response from Mercado Pago"
     tags:
-      - name: "Payment"
+      - "Payment"
     requestBody:
       description: "Webhook notification payload"
     requestModels:
-      application/json: "WebhookResponse"
+      application/json: "WebhookRequest"
     methodResponses:
       - statusCode: 200
         responseBody:

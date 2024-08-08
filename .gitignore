@@ -5,6 +5,7 @@ env
 .idea
 .DS_Store
 .venv
+env.json
 node_modules
 package-lock.json
 .coverage

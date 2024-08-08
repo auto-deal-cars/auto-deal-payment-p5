@@ -1,0 +1,9 @@
+type: object
+properties:
+  action:
+    type: string
+  data:
+    type: object
+    properties:
+      payment_id:
+        type: string

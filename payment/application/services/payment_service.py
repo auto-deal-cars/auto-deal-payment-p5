@@ -10,6 +10,7 @@ from payment.application.ports.payment_repository import PaymentRepository
 from payment.domain.payment import Payment
 
 sqs = boto3.client("sqs")
+cognito = boto3.client("cognito-idp")
 class PaymentService:
     """
     This class implements the payment service.
@@ -79,35 +80,48 @@ class PaymentService:
             status='failed'
         )
 
-    def start_payment(self, idempotency_key: str, vehicle_id: int):
+    def get_user_info(self, access_token: str):
+        """
+        This method retrieves the user info from the access token.
+        """
+
+        user_data = cognito.get_user(AccessToken=access_token)
+        return user_data.get("UserAttributes")
+
+    def start_payment(
+            self,
+            idempotency_key: str,
+            vehicle_id: int,
+            access_token: str
+        ) -> dict:
         """
         This method starts a PIX payment.
         """
+        user_info = self.get_user_info(access_token)
         request_options = mercadopago.config.RequestOptions()
         request_options.custom_headers = {
             "x-idempotency-key": idempotency_key
         }
-        default_cpf = "12345678909"
 
         payment_data = {
             "transaction_amount": 1,
             "description": f"Vehicle {vehicle_id}",
             "payment_method_id": "pix",
             "payer": {
-                "email": os.environ.get("DEFAULT_EMAIL"),
-                "first_name": "John",
-                "last_name": "Doe",
+                "email": user_info.get("email"),
+                "first_name": user_info.get("first_name"),
+                "last_name": user_info.get("last_name"),
                 "identification": {
                     "type": "CPF",
-                    "number": default_cpf
+                    "number": user_info.get("cpf")
                 },
                 "address": {
-                    "zip_code": os.environ.get("ZIP_CODE"),
-                    "street_name": os.environ.get("STREET_NAME"),
-                    "street_number": os.environ.get("STREET_NUMBER"),
-                    "neighborhood": os.environ.get("NEIGHBORHOOD"),
-                    "city": os.environ.get("CITY"),
-                    "federal_unit": os.environ.get("FEDERAL_UNIT")
+                    "zip_code": user_info.get("address").get("zip_code"),
+                    "street_name": user_info.get("address").get("street_name"),
+                    "street_number": user_info.get("address").get("street_number"),
+                    "neighborhood": user_info.get("address").get("neighborhood"),
+                    "city": user_info.get("address").get("city"),
+                    "federal_unit": user_info.get("address").get("state")
                 }
             }
         }

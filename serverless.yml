@@ -1,13 +1,14 @@
 service: auto-deal-payment
 frameworkVersion: '3'
-params:
-  default:
-    audienceIssuerUrl: ${env.AUDIENCE_ISSUER_URL}
-    audienceClientId: ${env.AUDIENCE_CLIENT_ID}
-    failedPaymentQueueArn: ${env.FAILED_PAYMENT_QUEUE_ARN}
-    successPaymentQueueArn: ${env.SUCCESS_PAYMENT_QUEUE_ARN}
+
+useDotenv: true
+
 custom:
   tableName: 'auto-deal-payment-${sls:stage}'
+  audienceIssuerUrl: ${file(env.json):env.AUDIENCE_ISSUER_URL}
+  audienceClientId: ${file(env.json):env.AUDIENCE_CLIENT_ID}
+  failedPaymentQueueArn: ${file(env.json):env.FAILED_PAYMENT_QUEUE_ARN}
+  successPaymentQueueArn: ${file(env.json):env.SUCCESS_PAYMENT_QUEUE_ARN}
   documentation: ${file(serverless.doc.yml):documentation}
 
 provider:
@@ -39,21 +40,14 @@ provider:
           Action:
             - sqs:SendMessage
           Resource:
-            - ${param:failedPaymentQueueArn}
-            - ${param:successPaymentQueueArn}
+            - ${self:custom.failedPaymentQueueArn}
+            - ${self:custom.successPaymentQueueArn}
   environment:
-    TABLE_NAME: ${env.TABLE_NAME}
-    ENV_ACCESS_TOKEN: ${env.ENV_ACCESS_TOKEN}
-    MERCADO_PAGO_API_URL: ${env.MERCADO_PAGO_API_URL}
-    SUCCESS_PAYMENT_QUEUE_URL: ${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}
-    FAILED_PAYMENT_QUEUE_URL: ${{ secrets.FAILED_PAYMENT_QUEUE_URL }}
-    ZIP_CODE: ${env.ZIP_CODE}
-    STREET_NAME: ${env.STREET_NAME}
-    STREET_NUMBER: ${env.STREET_NUMBER}
-    NEIGHBORHOOD: ${env.NEIGHBORHOOD}
-    CITY: ${env.CITY}
-    FEDERAL_UNIT: ${env.FEDERAL_UNIT}
-    DEFAULT_EMAIL: ${env.DEFAULT_EMAIL}
+    TABLE_NAME: ${self:custom.tableName}
+    ENV_ACCESS_TOKEN: ${self:custom.env.ENV_ACCESS_TOKEN}
+    MERCADO_PAGO_API_URL: ${self:custom.env.MERCADO_PAGO_API_URL}
+    SUCCESS_PAYMENT_QUEUE_URL: ${self:custom.successPaymentQueueArn}
+    FAILED_PAYMENT_QUEUE_URL: ${self:custom.failedPaymentQueueArn}
 
   httpApi:
     cors: true
@@ -61,9 +55,9 @@ provider:
       autoDealAuthorizer:
         type: jwt
         identitySource: $request.header.Authorization
-        issuerUrl: ${param:audienceIssuerUrl}
+        issuerUrl: ${self:custom.audienceIssuerUrl}
         audience:
-          - ${param:audienceClientId}
+          - ${self:custom.audienceClientId}
   architecture: arm64
 functions:
   pay:
@@ -97,7 +91,6 @@ functions:
             name: autoDealAuthorizer
 
 plugins:
-  - serverless-dotenv-plugin
   - serverless-openapi-documenter
 
 resources:
@@ -116,6 +109,8 @@ resources:
     InitializePaymentQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: initialize-payment-queue
+        QueueName: initialize-payment-queue.fifo
         VisibilityTimeout: 30
         MessageRetentionPeriod: 300
+        FifoQueue: true
+        ContentBasedDeduplication: true

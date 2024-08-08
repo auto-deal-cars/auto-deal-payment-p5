@@ -1,0 +1,4 @@
+type: object
+properties:
+  idempotency_key:
+    type: string

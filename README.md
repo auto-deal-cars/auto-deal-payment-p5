@@ -26,6 +26,9 @@ Este projeto foi gerado com o template `aws-python-docker` do [Serverless framew
 
 Para mais detalhes, por favor, referir para a [documentação](https://www.serverless.com/framework/docs/providers/aws/).
 
+## Evidência do projeto
+Vídeo com evidências do projeto. [Link para o vídeo]
+
 ## Stack do Projeto
 
 - **AWS Lambda:** Funções que rodam a partir de eventos gerados, podendo ser invocadas através de uma API Gateway ou SQS Queue
@@ -142,8 +145,8 @@ O modelo de dados do serviço API é um banco de dados relacional, utilizando o 
 - **VehicleBrand**: Tabela que armazena as marcas de veículos.
 - **SoldVehicle**: Tabela que armazena os veículos vendidos.
 - **Enum: StatusEnum**: Tabela que armazena os status dos veículos vendidos. Possíveis valores:
-  - **draft**: Venda inicializada.
-  - **sold**: Venda concluída.
+  - **draft**: Venda inicializada. Veículos com este status são removidos da lista de veículos disponíveis à venda.
+  - **sold**: Venda concluída. Não é possível reverter a venda.
 
 #### Estrutura das tabelas
 ##### Vehicle
