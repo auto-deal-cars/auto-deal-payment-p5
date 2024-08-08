@@ -9,6 +9,7 @@ Aluno:
 ## Lista de Repositórios:
   - [Repositório AutoDeal API](https://github.com/auto-deal-cars/auto-deal-api)
   - [Repositório AutoDeal Payment](https://github.com/auto-deal-cars/auto-deal-payment)
+  - [Repositório AutoDeal User](https://github.com/auto-deal-cars/auto-deal-user)
 
 ## O Projeto
 
