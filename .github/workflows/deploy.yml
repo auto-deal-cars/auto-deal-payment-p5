@@ -30,14 +30,13 @@ jobs:
 
     - name: Create env.json file
       run: |
-        COMMIT_COUNT=$(git rev-list --count HEAD)
-        echo '{
-          "TABLE_NAME": "${{ secrets.TABLE_NAME }}-${COMMIT_COUNT}",
-          "ENV_ACCESS_TOKEN": "${{ secrets.ENV_ACCESS_TOKEN }}"
-          "AUDIENCE_ISSUER_URL": "${{ secrets.AUDIENCE_ISSUER_URL }}"
-          "AUDIENCE_CLIENT_ID": "${{ secrets.AUDIENCE_CLIENT_ID }}"
-          "MERCADO_PAGO_API_URL": "${{ secrets.MERCADO_PAGO_API_URL }}"
-          "SUCCESS_PAYMENT_QUEUE_URL": "${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}"
+        'echo '{
+          "TABLE_NAME": "${{ secrets.TABLE_NAME }}-${git rev-list --count HEAD}",
+          "ENV_ACCESS_TOKEN": "${{ secrets.ENV_ACCESS_TOKEN }}",
+          "AUDIENCE_ISSUER_URL": "${{ secrets.AUDIENCE_ISSUER_URL }}",
+          "AUDIENCE_CLIENT_ID": "${{ secrets.AUDIENCE_CLIENT_ID }}",
+          "MERCADO_PAGO_API_URL": "${{ secrets.MERCADO_PAGO_API_URL }}",
+          "SUCCESS_PAYMENT_QUEUE_URL": "${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}",
           "FAILED_PAYMENT_QUEUE_URL": "${{ secrets.FAILED_PAYMENT_QUEUE_URL }}"
         }' > env.json
 
