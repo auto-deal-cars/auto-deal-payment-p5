@@ -5,10 +5,13 @@ env
 .idea
 .DS_Store
 .venv
-env.json
 node_modules
 package-lock.json
 .coverage
+env.json
+postman.json
+openapi.json
+openapi.yml
 
 __pycache__
 /__pycache__/__init__.cpython-310.pyc
