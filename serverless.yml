@@ -4,11 +4,11 @@ frameworkVersion: '3'
 useDotenv: true
 
 custom:
-  tableName: 'auto-deal-payment-${sls:stage}'
-  audienceIssuerUrl: ${file(env.json):env.AUDIENCE_ISSUER_URL}
-  audienceClientId: ${file(env.json):env.AUDIENCE_CLIENT_ID}
-  failedPaymentQueueArn: ${file(env.json):env.FAILED_PAYMENT_QUEUE_ARN}
-  successPaymentQueueArn: ${file(env.json):env.SUCCESS_PAYMENT_QUEUE_ARN}
+  tableName: ${file(env.json):TABLE_NAME}
+  audienceIssuerUrl: ${file(env.json):AUDIENCE_ISSUER_URL}
+  audienceClientId: ${file(env.json):AUDIENCE_CLIENT_ID}
+  failedPaymentQueueArn: ${file(env.json):FAILED_PAYMENT_QUEUE_ARN}
+  successPaymentQueueArn: ${file(env.json):SUCCESS_PAYMENT_QUEUE_ARN}
   documentation: ${file(documentation/openapi/serverless.doc.yml):documentation}
 
 provider:
