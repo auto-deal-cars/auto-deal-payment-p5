@@ -31,7 +31,7 @@ documentation:
   - name: "PaymentDetailsRequest"
     description: "Payment details request"
     contentType: "application/json"
-    schema: ${file('documentation/openapi/schemas/payment-details-request.json')}
+    schema: ${file('documentation/openapi/schemas/payment-details-request.yml')}
 
 endpoints:
   get-payment:
