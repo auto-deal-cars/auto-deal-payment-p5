@@ -21,17 +21,17 @@ documentation:
   - name: "ErrorResponse"
     description: "This is an error"
     contentType: "application/json"
-    schema: ${file('documentation/opeanapi/schemas/error-response.yml')}
+    schema: ${file('documentation/openapi/schemas/error-response.yml')}
 
   - name: "WebhookRequest"
     description: "Webhook request body"
     contentType: "application/json"
-    schema: ${file('documentation/opeanapi/schemas/webhook-request.yml')}
+    schema: ${file('documentation/openapi/schemas/webhook-request.yml')}
 
   - name: "PaymentDetailsRequest"
     description: "Payment details request"
     contentType: "application/json"
-    schema: ${file('documentation/opeanapi/schemas/payment-details-request.json')}
+    schema: ${file('documentation/openapi/schemas/payment-details-request.yml')}
 
 endpoints:
   get-payment:
