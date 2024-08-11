@@ -37,7 +37,9 @@ jobs:
           "AUDIENCE_CLIENT_ID": "${{ secrets.AUDIENCE_CLIENT_ID }}",
           "MERCADO_PAGO_API_URL": "${{ secrets.MERCADO_PAGO_API_URL }}",
           "SUCCESS_PAYMENT_QUEUE_URL": "${{ secrets.SUCCESS_PAYMENT_QUEUE_URL }}",
-          "FAILED_PAYMENT_QUEUE_URL": "${{ secrets.FAILED_PAYMENT_QUEUE_URL }}"
+          "FAILED_PAYMENT_QUEUE_URL": "${{ secrets.FAILED_PAYMENT_QUEUE_URL }}",
+          "SUCCESS_PAYMENT_QUEUE_ARN": "${{ secrets.SUCCESS_PAYMENT_QUEUE_ARN }}",
+          "FAILED_PAYMENT_QUEUE_ARN": "${{ secrets.FAILED_PAYMENT_QUEUE_ARN }}"
         }' > env.json
 
     - name: Set up QEMU
