@@ -32,7 +32,7 @@ jobs:
       run: |
         COMMIT_COUNT=$(git rev-list --count HEAD)
         echo '{
-          "TABLE_NAME": "${{ secrets.TABLE_NAME }}-${GITHUB_RUN_ID}",
+          "TABLE_NAME": "${{ secrets.TABLE_NAME }}${COMMIT_COUNT}",
           "ENV_ACCESS_TOKEN": "${{ secrets.ENV_ACCESS_TOKEN }}",
           "AUDIENCE_ISSUER_URL": "${{ secrets.AUDIENCE_ISSUER_URL }}",
           "AUDIENCE_CLIENT_ID": "${{ secrets.AUDIENCE_CLIENT_ID }}",
