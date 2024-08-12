@@ -17,7 +17,7 @@ class DynamoDBPaymentRepository(PaymentRepository):
         This method initializes the DynamoDB payment repository.
         """
         self.client = boto3.client("dynamodb")
-        self.table_name = f"{os.environ.get('TABLE_NAME')}-dev"
+        self.table_name = f"{os.environ.get('TABLE_NAME')}"
 
     def create(self, payment: Payment):
         """
