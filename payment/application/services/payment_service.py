@@ -54,7 +54,8 @@ class PaymentService:
             MessageBody=json.dumps({
                 "payment_id": payment["payment_id"],
                 "vehicle_id": payment["vehicle_id"],
-            })
+            }),
+            MessageGroupId=str(payment["vehicle_id"])
         )
 
         self.payment_repository.update_payment(
@@ -72,7 +73,8 @@ class PaymentService:
             MessageBody=json.dumps({
                 "payment_id": payment["payment_id"],
                 "vehicle_id": payment["vehicle_id"],
-            })
+            }),
+            MessageGroupId=str(payment["vehicle_id"])
         )
 
         self.payment_repository.update_payment(
