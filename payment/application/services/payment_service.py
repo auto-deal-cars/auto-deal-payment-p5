@@ -98,6 +98,12 @@ class PaymentService:
         This method starts a PIX payment.
         """
         user_info = self.get_user_info(access_token)
+        user_dict = {item['Name']: item['Value'] for item in user_info}
+
+        email = user_dict.get('email', {})
+        user_details = json.loads(user_dict.get('custom:user_details', {}))
+        address = json.loads(user_dict.get('custom:address', {}))
+
         request_options = mercadopago.config.RequestOptions()
         request_options.custom_headers = {
             "x-idempotency-key": idempotency_key
@@ -108,22 +114,22 @@ class PaymentService:
             "description": f"Vehicle {vehicle_id}",
             "payment_method_id": "pix",
             "payer": {
-                "email": user_info.get("email"),
-                "first_name": user_info.get("first_name"),
-                "last_name": user_info.get("last_name"),
+                "email": email,
+                "first_name": user_details.get("first_name", {}),
+                "last_name": user_details.get("last_name", {}),
                 "identification": {
                     "type": "CPF",
-                    "number": user_info.get("cpf")
+                    "number": user_details.get("cpf", {})
                 },
                 "address": {
-                    "zip_code": user_info.get("address").get("zip_code"),
-                    "street_name": user_info.get("address").get("street_name"),
-                    "street_number": user_info.get("address").get("street_number"),
-                    "neighborhood": user_info.get("address").get("neighborhood"),
-                    "city": user_info.get("address").get("city"),
-                    "federal_unit": user_info.get("address").get("state")
+                    "zip_code": address.get("zip_code", {}),
+                    "street_name": address.get("street_name", {}),
+                    "street_number": address.get("street_number", {}),
+                    "neighborhood": address.get("neighborhood", {}),
+                    "city": address.get("city", {}),
+                    "federal_unit": address.get("federal_unit", {})
+                    }
                 }
-            }
         }
 
         payment_response = self.sdk.payment().create(payment_data, request_options)
