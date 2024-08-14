@@ -1,4 +1,4 @@
-[![Deploy CD](https://github.com/auto-deal-cars/auto-deal-payment/actions/workflows/deploy.yml/badge.svg)](https://github.com/auto-deal-cars/auto-deal-payment/actions/workflows/deploy.yml)
+[![Deploy CD](https://github.com/auto-deal-cars/auto-deal-payment-p5/actions/workflows/deploy.yml/badge.svg)](https://github.com/auto-deal-cars/auto-deal-payment-p5/actions/workflows/deploy.yml)
 
 # AutoDeal Payment - Uma solução AWS Lambda com Docker
 
@@ -7,8 +7,8 @@ Aluno:
 * Pedro Henrique de Marins da Silva - RM348617
 
 ## Lista de Repositórios:
-  - [Repositório AutoDeal API](https://github.com/auto-deal-cars/auto-deal-api)
-  - [Repositório AutoDeal Payment](https://github.com/auto-deal-cars/auto-deal-payment)
+  - [Repositório AutoDeal API](https://github.com/auto-deal-cars/auto-deal-api-p5)
+  - [Repositório AutoDeal Payment](https://github.com/auto-deal-cars/auto-deal-payment-p5)
   - [Repositório AutoDeal User](https://github.com/auto-deal-cars/auto-deal-user)
 
 ## O Projeto
@@ -105,7 +105,7 @@ A pipeline para deploy do código foi configurada utilizando o GitHub Actions, a
 - **Run Alembic migrations**: Executa as migrações do banco de dados utilizando `alembic upgrade head`.
 - **Set up QEMU**: Configura o QEMU para emulação da arquitetura ARM para realizar o build da imagem Docker, usando a ação `docker/setup-qemu-action@v3`.
 - **Deploy if tests pass**: Se os testes passarem, instala o Serverless Framework e plugins necessários, e realiza o deploy da aplicação utilizando `sls deploy`.
-- **Clean up .env file**: Remove o arquivo `.env` após o deploy ser realizado com sucesso.
+- **Clean up env.json file**: Remove o arquivo `env.json` após o deploy ser realizado com sucesso.
 
 > **Sobre a utilização do QEMU**: O Github Actions não suporta a emulação da arquitetura ARM nativamente, porém, o QEMU permite a emulação da arquitetura ARM para construir a imagem Docker.
 
@@ -116,6 +116,8 @@ A pipeline para deploy do código foi configurada utilizando o GitHub Actions, a
 - **Pull Requests**: Código só pode ser mergeado para a branch `main` através de pull requests.
 - **CI/CD**: A aplicação possui CI/CD através do GitHub Actions, onde o código é buildado e deployado para a AWS Lambda através do Serverless Framework.
 - **Documentação das APIs**: A documentação do projeto foi feita utilizando o Swagger, e está disponível na raiz do projeto, no arquivo `openapi.yml`. Para rodar localmente, utilize o comando `swagger-ui-express --config openapi.yml --port 8080`.
+
+> **Sobre o Swagger**: É recomendado utilizar a documentação do Swagger após o primeiro deploy, pois é necessário configurar o endpoint do API Gateway no Swagger. Os endpoints estão documentados e todas as os possíveis models de request e response estão documentados no Swagger.
 
 ## Arquitetura
 ![Arquitetura da aplicação](./documentation/images/image-4.png)
@@ -129,6 +131,16 @@ A abordagem de arquitetura hexagonal também pode ser utilizada para a criação
   - Condutores: (ou atores primários): Podem ser definidos como atores que iniciam a interação. Por exemplo, um condutor pode ser um controller que recebe um input de um usuário e redireciona a aplicação utilizando uma Port(interface).
   - Conduzidos: (também conhecido como atores secundários): São parte da camada de infrasctructure da aplicação. Podem ser utilizados para adicionar funcionalidades para o domínio da aplicação. Exemplos: Banco de dados, APIs externas.
 
+Também é possível dizer que a aplicação foi implementada seguindo o conceito de Clean Architecture, onde a aplicação é dividida em camadas, e cada camada possui sua responsabilidade. Alguns detalhes sobre os padrões:
+
+- **Application Services**: Camada de serviços da aplicação, responsável por conter a lógica de negócios da aplicação.
+- **Domain**: Camada de domínio da aplicação, responsável por conter as entidades da aplicação.
+- **Infrastructure**: Camada de infraestrutura da aplicação, responsável por conter as portas e adaptadores da aplicação.
+- **Controllers**: Camada de controllers da aplicação, responsável por conter os controllers da aplicação.
+- **Adapters**: Camada de adaptadores da aplicação, responsável por conter os adaptadores da aplicação.
+- **Repositories**: Camada de repositórios da aplicação, responsável pelas operações de banco de dados.
+- **Decorators**: Decorators são utilizados para adicionar funcionalidades aos controllers, neste caso, para adicionar a lógica responsável por validar exceptions e retornar as respostas corretas para o usuário.
+
 ### Padrão SAGA
 ![Padrao SAGA](./documentation/images/image-5.png)
 
@@ -137,6 +149,7 @@ Adicionamente, o padrão SAGA utilizado para essa aplicação é o padrão Coreo
 Para cobrir falhas, a aplicação possui a seguinte estratégia:
   - **Compensação**: Eventos compensatórios para reverter vendas, caso ocorra algum erro.
   - **Chave de idempotência**: Identificador único para garantir que uma transação seja executada apenas uma vez.
+  - ** SQS Queues utilizando padrão FIFO**: Garante a ordem de execução das mensagens, evitando problemas de concorrência. Também garante que uma mensagem seja processada apenas uma vez.
 
 ### Modelo de dados (RDS)
 ![Modelo de dados da aplicação](./documentation/images/image-3.png)
@@ -147,7 +160,8 @@ O modelo de dados do serviço API é um banco de dados relacional, utilizando o 
 - **SoldVehicle**: Tabela que armazena os veículos vendidos.
 - **Enum: StatusEnum**: Tabela que armazena os status dos veículos vendidos. Possíveis valores:
   - **draft**: Venda inicializada. Veículos com este status são removidos da lista de veículos disponíveis à venda.
-  - **sold**: Venda concluída. Não é possível reverter a venda.
+  - **awaiting_pickup**: Aguardando retirada do veículo que já foi vendido.
+  - **sold**: Venda concluída. Não é possível reverter a venda pois o veículo já foi retirado.
 
 #### Estrutura das tabelas
 ##### Vehicle
@@ -186,6 +200,7 @@ O modelo de dados do serviço API é um banco de dados relacional, utilizando o 
 | Valor        | Descrição                        |
 |--------------|----------------------------------|
 | draft        | Venda inicializada               |
+| awaiting_pickup        | Aguardando retirada do veículo que já foi vendido |
 | sold         | Venda concluída                  |
 
 ### Modelo de dados (DynamoDB)
@@ -204,6 +219,11 @@ Abaixo, está a estrutura do modelo de dados do serviço Payment.
 
 ## Rotas
 
+# AutoDeal User
+**POST /user**: cadastro de usuário.
+**POST /login**: login de usuário.
+**DELETE /user**: deletar usuário.
+
 ## AutoDeal API
 
 - **POST /payment**: Criação de um pagamento.
@@ -215,11 +235,71 @@ Abaixo, está a estrutura do modelo de dados do serviço Payment.
 - **GET /vehicles**: Listagem de veículos disponíveis à venda.
 - **GET /vehicles/sold**: Listagem de veículos vendidos.
 - **POST /vehicle/{id}/initialize-sale**: Inicialização da venda de um veículo.
+- **DELETE /vehicle/{id}**: Cancelamento da venda de um veículo que não foi pago.
+- **POST /vehicle/{id}/confirm-pickup**: Confirmação de retirada de um veículo que já foi vendido.
 
 ## AutoDeal Payment
 
 - **POST /webhook**: Recebe notificação de webhook.
 - **GET /payment**: Busca os pagamentos realizados/pendentes.
+
+## Segurança
+
+Estes microsserviços são protegidos boas práticas de segurança, como por exemplo:
+- **Autenticação e autorização**: Protegidos por meio de autenticação e autorização utilizando o JWT Authorizer.
+- **CORS**: Protegidos por meio de CORS para evitar ataques de Cross-Site Request Forgery (CSRF).
+- **Rate Limiting**: Protegidos por meio de rate limiting para evitar ataques de força bruta.
+- **Scopes**: Protegidos por meio de scopes para evitar ataques de Cross-Site Request Forgery (CSRF).
+- **HTTPS**: Protegidos por meio de HTTPS para evitar ataques de man-in-the-middle.
+- **IAM Roles**: Protegidos por meio de IAM Roles. Eles são utilizados principalmente para proteger o serviço de Payment, que utiliza o DynamoDB como banco de dados.
+
+Abaixo, mais detalhes sobre a segurança de cada serviço:
+
+### Dados dos usuários
+
+Os dados dos usuários são armazenados no Cognito User Pool, que é um serviço da AWS que oferece autenticação e autorização para aplicações web. É utilizada a solução de custom attributes para armazenar os dados específicos do usuário, que são gerados para criação do pagamento no método PIX.
+
+Dados que são armazenados no Cognito User Pool:
+- **name**: Nome do usuário.
+- **email**: Email do usuário.
+- **cpf**: CPF do usuário.
+- **accepted_terms**: Se o usuário aceitou os termos de uso da aplicação e aceitou que seus dados serão utilizados para criação do pagamento.
+- **endereço**: Endereço do usuário. Que inclui:
+  - **street**: Rua do usuário.
+  - **number**: Número do usuário.
+  - **city**: Cidade do usuário.
+  - **state**: Estado do usuário.
+  - **zip_code**: CEP do usuário.
+
+#### Implicações da LGPD
+
+Esta aplicação apenas armazena os dados dos usuários no Cognito User Pool, e não armazena os dados em nenhum outro banco de dados. Portanto, não há necessidade de utilizar o serviço de PII (Personal Identifiable Information) da AWS.
+Além disso, a aplicação só permite a criação de usuários que aceitaram os termos de uso da aplicação, incluindo que seus dados serão utilizados para criação do pagamento.
+
+Também é importante destacar que a qualquer momento, o usuário pode solicitar a remoção de seus dados, e a aplicação irá remover os dados do Cognito User Pool.
+
+#### Lista de scopes
+
+Os usuários estão divididos em dois grupos diferentes, que possuem diferentes permissões:
+- **buyer**: Permite a criação de usuários.
+- **admin**: Permite a criação de usuários e acesso a todas as rotas da aplicação.
+
+Os scopes são criados utilizando uma solução chamada `Pre Token Generation Lambda`, uma solução da AWS que permite a criação de scopes dinamicamente. Essa solução permite o seguinte:
+Antes da criação do token, a aplicação verifica se o usuário possui o scope `admin` ou `buyer`, e adiciona scopes automaticamente ao access token.
+
+Esse processo é feito utilizando uma função Lambda, que é configurada no Cognito User Pool.
+
+Lista de scopes:
+- **delete:user**: Permite remover o usuário (apenas admin podem utilizar, recurso utilizado para apagar usuários e seus dados).
+- **create:vehicle**: Permite a criação de veículos. (apenas admin podem utilizar)
+- **update:vehicle**: Permite a atualização de veículos. (apenas admin podem utilizar)
+- **delete:vehicle**: Permite a remoção de veículos. (apenas admin podem utilizar)
+- **get:vehicle**: Permite a leitura de veículos.
+- **list:available**: Permite a listagem de veículos disponíveis à venda.
+- **list:sold**: Permite a listagem de veículos vendidos. (apenas admin podem utilizar)
+- **initialize:sale**: Permite a inicialização da venda de um veículo.
+- **cancel:sale**: Permite o cancelamento da venda de um veículo.
+- **pick:sale**: Permite a confirmação de retirada de um veículo que já foi vendido.
 
 ## Como rodar o projeto
 
@@ -238,21 +318,12 @@ Além disso, alguns serviços da AWS são necessários para o funcionamento da a
 - AWS API Gateway (são criados no serverless.yml)
 - AWS SQS (São criados no serverless.yml)
 - AWS DynamoDB (São criados no serverless.yml)
-- AWS RDS
-- AWS Cognito
+- AWS RDS (São criados no serverless.yml)
+- AWS Cognito (São criados no serverless.yml)
+- Conta do Mercado Pago
 
-Atenção importante para os params ao rodar o comando `sls deploy`, eles são:
+> **Sobre resources criadas com o Serverless Framework**: Os recursos criados pelo Serverless Framework são criados na conta da AWS que está configurada no AWS CLI. Serverless Framework cria os recursos utilizando templates do CloudFormation.
 
-AutoDeal API:
-- `initializePaymentQueueArn` - Arn da fila do SQS que inicializa o pagamento
-- `initializePaymentQueueUrl` - URL da fila do SQS que inicializa o pagamento
-- `audienceIssuerUrl` - URL do issuer do Cognito User Pool
-- `audienceClientId` - ID do client do Cognito User Pool
-
-AutoDeal Payment
-- `failedPaymentQueueArn` - Arn da fila do SQS que armazena as vendas que não concluíram o pagamento
-- `successPaymentQueueUrl` - URL da fila do SQS que armazena as vendas que concluíram o pagamento
-- `audienceIssuerUrl` - URL do issuer do Cognito User Pool
-- `audienceClientId` - ID do client do Cognito User Pool
+Atenção importante preencher o arquivo env.json com as variáveis de ambiente necessárias para o funcionamento da aplicação. Existe um arquivo `.env.example` que pode ser utilizado como referência.
 
 Após clonar o repositório, utilize o comando `npm install` para instalar as dependências do projeto, e `sls deploy` para rodar o projeto, sem esquecer de passar os params no comando.
