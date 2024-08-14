@@ -9,6 +9,8 @@ custom:
   audienceClientId: ${file(env.json):AUDIENCE_CLIENT_ID}
   failedPaymentQueueArn: ${file(env.json):FAILED_PAYMENT_QUEUE_ARN}
   successPaymentQueueArn: ${file(env.json):SUCCESS_PAYMENT_QUEUE_ARN}
+  successPaymentQueueUrl: ${file(env.json):SUCCESS_PAYMENT_QUEUE_URL}
+  failedPaymentQueueUrl: ${file(env.json):FAILED_PAYMENT_QUEUE_URL}
   envAccessToken: ${file(env.json):ENV_ACCESS_TOKEN}
   mercadoPagoApiUrl: ${file(env.json):MERCADO_PAGO_API_URL}
   documentation: ${file(documentation/openapi/serverless.doc.yml):documentation}
@@ -50,8 +52,10 @@ provider:
     AUDIENCE_ISSUER_URL: ${self:custom.audienceIssuerUrl}
     AUDIENCE_CLIENT_ID: ${self:custom.audienceClientId}
     MERCADO_PAGO_API_URL: ${self:custom.mercadoPagoApiUrl}
-    SUCCESS_PAYMENT_QUEUE_URL: ${self:custom.successPaymentQueueArn}
-    FAILED_PAYMENT_QUEUE_URL: ${self:custom.failedPaymentQueueArn}
+    SUCCESS_PAYMENT_QUEUE_URL: ${self:custom.successPaymentQueueUrl}
+    FAILED_PAYMENT_QUEUE_URL: ${self:custom.failedPaymentQueueUrl}
+    SUCCESS_PAYMENT_QUEUE_ARN: ${self:custom.successPaymentQueueArn}
+    FAILED_PAYMENT_QUEUE_ARN: ${self:custom.failedPaymentQueueArn}
 
   httpApi:
     cors: true
